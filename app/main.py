@@ -3,7 +3,9 @@ from typing import List
 from . import models, schemas
 from .database import engine, get_db
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes='bcrypt', deprecated = 'auto')
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -66,4 +68,20 @@ async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(g
     db.commit()
     return {"message": "Post updated successfully"}
 
-# 4:30
+# for user
+
+@app.post("/users", status_code = status.HTTP_201_CREATED, response_model=schemas.UserOut)
+async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    try:
+        hashedPassword = pwd_context.hash(user.password)
+        user.password = hashedPassword
+        new_user = models.User(**user.model_dump())
+        db.add(new_user)
+        db.commit() 
+        db.refresh(new_user)
+        
+        return new_user
+    except Exception as error:
+        return HTTPException(status_code= status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)) 
+    
+# 6:08
