@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 
 router = APIRouter(
-    prefix="/posts"
+    prefix="/posts",
+    tags=['Posts']
 )
 
 
