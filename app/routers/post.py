@@ -22,7 +22,7 @@ async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db),
                       current_user: int = Depends(oauth2.get_current_user)):
     try:
         # new_post = models.Post(title = post.title, content = post.content, published = post.published)
-        new_post = models.Post(**post.model_dump())  # ** unpacked
+        new_post = models.Post(owner_id = current_user, **post.model_dump())  # ** unpacked
         db.add(new_post)
         db.commit()
         db.refresh(new_post)
@@ -48,6 +48,11 @@ async def delete_post(id: int, db: Session = Depends(get_db),
     if post.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'Post not found with {id}')
+    
+    if post.first().owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f'Not authorized to preform request action')
+    
     post.delete(synchronize_session=False)
     db.commit()
     return {"message": "Post deleted successfully"}
