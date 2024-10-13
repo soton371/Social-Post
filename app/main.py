@@ -20,4 +20,4 @@ app.include_router(vote.router)
 async def root():
     return {"message": "Hello World"}
 
-#9.41
+#10:32
